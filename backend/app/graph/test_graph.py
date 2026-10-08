@@ -8,7 +8,10 @@ initial_state = {
     "run_id": "",
     "status": "created",
     "target_config": TargetConfig(type="mock"),
-    "objective": "Test whether a chatbot handles customer support requests correctly.",
+    "objective": (
+        "Evaluate whether a customer support chatbot handles "
+        "refund requests correctly."
+    ),
     "test_plan": None,
     "current_scenario_index": 0,
     "current_scenario": None,
@@ -26,6 +29,9 @@ initial_state = {
 
 result = graph.invoke(initial_state)
 
-print("Graph execution successful")
+print("\nGraph execution successful")
 print(f"Run ID: {result['run_id']}")
 print(f"Status: {result['status']}")
+
+print("\nGenerated Test Plan:")
+print(result["test_plan"])
