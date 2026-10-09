@@ -35,3 +35,8 @@ print(f"Status: {result['status']}")
 
 print("\nGenerated Test Plan:")
 print(result["test_plan"])
+
+print(f"Status: {result['status']}")
+print(f"Scenario status: {result['scenario_status']}")
+print(f"Selected scenario: {result['current_scenario'].name}")
+print(f"Turn count: {result['turn_count']}")

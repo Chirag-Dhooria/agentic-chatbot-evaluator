@@ -5,3 +5,4 @@ langchain-core
 pydantic
 pydantic-settings
 httpx
+langchain-google-genai

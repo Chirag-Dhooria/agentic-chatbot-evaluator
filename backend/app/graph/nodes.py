@@ -134,3 +134,31 @@ def validate_plan(state: EvaluationState) -> dict:
         "max_turns": effective_max_turns,
         "status": "plan_validated",
     }
+
+
+def select_scenario(state: EvaluationState) -> dict:
+    """Select the next scenario from the validated test plan."""
+
+    plan = state.get("test_plan")
+
+    if plan is None:
+        raise ValueError("Cannot select a scenario without a test plan.")
+
+    index = state["current_scenario_index"]
+
+    if index >= len(plan.scenarios):
+        raise ValueError("No scenarios remain to be selected.")
+
+    scenario = plan.scenarios[index]
+
+    return {
+        "current_scenario": scenario,
+        "scenario_status": "selected",
+        "conversation": [],
+        "turn_count": 0,
+        "current_user_message": None,
+        "current_bot_response": None,
+        "turn_evaluation": None,
+        "scenario_evaluation": None,
+        "status": "scenario_selected",
+    }
