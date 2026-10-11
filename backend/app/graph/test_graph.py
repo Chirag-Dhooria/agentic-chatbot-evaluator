@@ -33,10 +33,13 @@ print("\nGraph execution successful")
 print(f"Run ID: {result['run_id']}")
 print(f"Status: {result['status']}")
 
-print("\nGenerated Test Plan:")
-print(result["test_plan"])
+assert result["status"] == "conversation_initialized"
+assert result["scenario_status"] == "in_progress"
+assert result["current_scenario"] is not None
+assert result["conversation"] == []
+assert result["turn_count"] == 0
 
-print(f"Status: {result['status']}")
+print(f"Scenario: {result['current_scenario'].name}")
 print(f"Scenario status: {result['scenario_status']}")
-print(f"Selected scenario: {result['current_scenario'].name}")
+print(f"Conversation initialized: {len(result['conversation']) == 0}")
 print(f"Turn count: {result['turn_count']}")

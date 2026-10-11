@@ -162,3 +162,26 @@ def select_scenario(state: EvaluationState) -> dict:
         "scenario_evaluation": None,
         "status": "scenario_selected",
     }
+
+
+
+def initialize_conversation(state: EvaluationState) -> dict:
+    """Initialize a clean conversation for the selected scenario."""
+
+    scenario = state.get("current_scenario")
+
+    if scenario is None:
+        raise ValueError(
+            "Cannot initialize a conversation without a selected scenario."
+        )
+
+    return {
+        "conversation": [],
+        "turn_count": 0,
+        "current_user_message": None,
+        "current_bot_response": None,
+        "turn_evaluation": None,
+        "scenario_evaluation": None,
+        "scenario_status": "in_progress",
+        "status": "conversation_initialized",
+    }
