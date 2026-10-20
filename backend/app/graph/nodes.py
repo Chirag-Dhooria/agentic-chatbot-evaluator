@@ -7,7 +7,8 @@ from app.llm.gemini import get_gemini_provider
 from app.models.evaluation import TestPlan
 from app.prompts.planner import build_planner_prompt
 from app.config import get_settings
-
+from app.prompts.simulator import SIMULATOR_SYSTEM_PROMPT
+from app.models.evaluation import Message
 
 
 def initialize_run(state: EvaluationState) -> dict:
@@ -184,4 +185,58 @@ def initialize_conversation(state: EvaluationState) -> dict:
         "scenario_evaluation": None,
         "scenario_status": "in_progress",
         "status": "conversation_initialized",
+    }
+
+def generate_user_message(state: EvaluationState) -> dict:
+    """Generate the next simulated customer's message."""
+
+    scenario = state.get("current_scenario")
+
+    if scenario is None:
+        raise ValueError(
+            "Cannot generate a user message without a selected scenario."
+        )
+
+    conversation_history = "\n".join(
+        f"{message.role}: {message.content}"
+        for message in state["conversation"]
+    )
+
+    if not conversation_history:
+        conversation_history = (
+            "No messages yet. This is the first turn."
+        )
+
+    prompt = f"""
+{SIMULATOR_SYSTEM_PROMPT}
+
+Scenario:
+- Persona: {scenario.persona}
+- Goal: {scenario.goal}
+- Constraints: {scenario.constraints}
+
+Conversation history:
+{conversation_history}
+
+Generate the next customer message.
+"""
+
+    provider = get_gemini_provider()
+    message_generator = provider.structured_output(Message)
+
+    generated_message = message_generator.invoke(prompt)
+
+    if generated_message.role != "user":
+        raise ValueError(
+            "The simulator must generate a message with role='user'."
+        )
+
+    generated_content = generated_message.content.strip()
+
+    if not generated_content:
+        raise ValueError("The simulator generated an empty message.")
+
+    return {
+        "current_user_message": generated_content,
+        "status": "user_message_generated",
     }

@@ -29,6 +29,9 @@ class EvaluationState(TypedDict):
     turn_count: int
     max_turns: int
 
+    current_user_message: str | None
+    current_bot_response: str | None
+
     turn_evaluation: TurnEvaluation | None
     scenario_evaluation: ScenarioEvaluation | None
 
