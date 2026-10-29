@@ -29,20 +29,16 @@ initial_state = {
 
 result = graph.invoke(initial_state)
 
-print("\nGraph execution successful")
-print(f"Run ID: {result['run_id']}")
-print(f"Status: {result['status']}")
 
-
-assert result["status"] == "user_message_generated"
-assert result["scenario_status"] == "in_progress"
-assert result["current_scenario"] is not None
+assert result["status"] == "target_response_received"
 assert result["current_user_message"]
-assert result["current_user_message"].strip()
-assert result["conversation"] == []
-assert result["turn_count"] == 0
+assert result["current_bot_response"]
+assert result["turn_count"] == 1
+assert len(result["conversation"]) == 2
 
-print(f"Scenario: {result['current_scenario'].name}")
-print(f"Status: {result['status']}")
-print(f"Generated user message: {result['current_user_message']}")
+assert result["conversation"][0].role == "user"
+assert result["conversation"][1].role == "assistant"
+
+print(f"User: {result['conversation'][0].content}")
+print(f"Chatbot: {result['conversation'][1].content}")
 print(f"Turn count: {result['turn_count']}")

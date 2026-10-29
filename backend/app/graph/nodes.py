@@ -9,7 +9,7 @@ from app.prompts.planner import build_planner_prompt
 from app.config import get_settings
 from app.prompts.simulator import SIMULATOR_SYSTEM_PROMPT
 from app.models.evaluation import Message
-
+from app.services.mock_target import mock_chatbot_response
 
 def initialize_run(state: EvaluationState) -> dict:
     """Initialize a new evaluation run."""
@@ -31,19 +31,31 @@ def initialize_run(state: EvaluationState) -> dict:
 
 
 def plan_tests(state: EvaluationState) -> dict:
-    """Generate a structured test plan from the evaluation objective."""
+    """Generate a test plan within configured execution limits."""
 
+    settings = get_settings()
     provider = get_gemini_provider()
 
     planner = provider.structured_output(TestPlan)
-
     test_plan = planner.invoke(
         build_planner_prompt(state["objective"])
     )
 
+    max_scenarios = settings.max_scenarios
+
+    if len(test_plan.scenarios) > max_scenarios:
+        test_plan = test_plan.model_copy(
+            update={
+                "scenarios": test_plan.scenarios[:max_scenarios]
+            }
+        )
+
     return {
         "test_plan": test_plan,
-        "max_turns": test_plan.max_turns_per_scenario,
+        "max_turns": min(
+            test_plan.max_turns_per_scenario,
+            settings.max_turns_per_scenario,
+        ),
         "status": "plan_generated",
     }
 
@@ -239,4 +251,33 @@ Generate the next customer message.
     return {
         "current_user_message": generated_content,
         "status": "user_message_generated",
+    }
+
+
+def call_target_chatbot(state: EvaluationState) -> dict:
+    """Send the simulated user message to the target chatbot."""
+
+    user_message = state.get("current_user_message")
+
+    if not user_message or not user_message.strip():
+        raise ValueError(
+            "Cannot call the target chatbot without a user message."
+        )
+
+    response = mock_chatbot_response(user_message)
+
+    if not response or not response.strip():
+        raise ValueError("The target chatbot returned an empty response.")
+
+    conversation = [
+        *state["conversation"],
+        Message(role="user", content=user_message),
+        Message(role="assistant", content=response),
+    ]
+
+    return {
+        "conversation": conversation,
+        "current_bot_response": response,
+        "turn_count": state["turn_count"] + 1,
+        "status": "target_response_received",
     }
